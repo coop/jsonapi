@@ -324,9 +324,35 @@ defmodule JSONAPI.SerializerTest do
     assert attributes[:body] == data[:body]
 
     assert encoded_data[:links][:self] == PostView.url_for(data, nil)
-    assert map_size(encoded_data[:relationships]) == 1
 
-    assert Enum.count(encoded[:included]) == 1
+    assert %{
+      author: %{
+        data: %{id: "2", type: "user"},
+        links: %{self: "/mytype/1/relationships/author", related: "/user/2"}
+      },
+      best_comments: %{
+        data: nil,
+        links: %{
+          self: "/mytype/1/relationships/best_comments",
+          related: "/comment"
+        }
+      }
+    } == encoded_data[:relationships]
+
+    assert [
+      %{
+        attributes: %{username: "jason", first_name: nil, last_name: nil},
+        id: "2",
+        links: %{self: "/user/2"},
+        type: "user",
+        relationships: %{
+          company: %{
+            data: nil,
+            links: %{self: "/user/2/relationships/company", related: "/company"}
+          }
+        }
+      }
+    ] == encoded[:included]
   end
 
   test "serialize handles a relationship self link on a show request" do
