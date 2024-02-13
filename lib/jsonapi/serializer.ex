@@ -198,7 +198,24 @@ defmodule JSONAPI.Serializer do
     assoc_loaded?(rel_data) && (is_map(rel_data) || is_list(rel_data))
   end
 
+  defmodule Relationship do
+    defstruct [entries: [], meta: %{}]
+
+    def new(entries, meta \\ []) when is_list(entries) do
+      %__MODULE__{entries: entries, meta: Map.new(meta)}
+    end
+  end
+
   @spec encode_relation(tuple()) :: map()
+  def encode_relation({rel_view, %Relationship{} = rel, _rel_url, _conn} = info) do
+    data = %{
+      data: encode_rel_data(rel_view, rel.entries),
+      meta: rel.meta
+    }
+
+    merge_related_links(data, info, remove_links?())
+  end
+
   def encode_relation({rel_view, rel_data, _rel_url, _conn} = info) do
     data = %{
       data: encode_rel_data(rel_view, rel_data)
