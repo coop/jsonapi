@@ -271,23 +271,17 @@ defmodule JSONAPI.View do
         do: Serializer.serialize(__MODULE__, model, conn, meta, options)
 
       if Code.ensure_loaded?(Phoenix) do
-        def render("show.json", %{data: data, conn: conn, meta: meta, options: options}),
-          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
+        def render(template, assigns) when template in ["show.json", "index.json"] do
+          :telemetry.span([:jsonapi, :render], %{template: template}, fn ->
+            data = Map.fetch!(assigns, :data)
+            conn = Map.fetch!(assigns, :conn)
+            meta = Map.get(assigns, :meta)
+            options = Map.get(assigns, :options)
 
-        def render("show.json", %{data: data, conn: conn, meta: meta}),
-          do: Serializer.serialize(__MODULE__, data, conn, meta)
-
-        def render("show.json", %{data: data, conn: conn}),
-          do: Serializer.serialize(__MODULE__, data, conn)
-
-        def render("index.json", %{data: data, conn: conn, meta: meta, options: options}),
-          do: Serializer.serialize(__MODULE__, data, conn, meta, options)
-
-        def render("index.json", %{data: data, conn: conn, meta: meta}),
-          do: Serializer.serialize(__MODULE__, data, conn, meta)
-
-        def render("index.json", %{data: data, conn: conn}),
-          do: Serializer.serialize(__MODULE__, data, conn)
+            {Serializer.serialize(__MODULE__, data, conn, meta, options),
+             %{serializer: String.replace_leading(to_string(__MODULE__), "Elixir.", "")}}
+          end)
+        end
       else
         raise ArgumentError,
               "Attempted to call function that depends on Phoenix. " <>
