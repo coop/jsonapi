@@ -223,6 +223,10 @@ defmodule JSONAPI.Utils.String do
     {fun.(key), maybe_expand_fields(value, fun)}
   end
 
+  def expand_fields({key, {:skip, value}}, fun) do
+    {fun.(key), value}
+  end
+
   def expand_fields({key, value}, fun) do
     {fun.(key), value}
   end
